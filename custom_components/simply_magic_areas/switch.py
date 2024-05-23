@@ -6,15 +6,16 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import call_later
 
-from .add_entities_when_ready import add_entities_when_ready
 from .base.magic import MagicArea
 from .base.primitives import SwitchBase
 from .const import (
     CONF_FEATURE_PRESENCE_HOLD,
     CONF_PRESENCE_HOLD_TIMEOUT,
+    DATA_AREA_OBJECT,
     DEFAULT_PRESENCE_HOLD_TIMEOUT,
     ICON_LIGHT_CONTROL,
     ICON_PRESENCE_HOLD,
+    MODULE_DATA,
 )
 
 
@@ -23,13 +24,9 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ):
-    """Set up the Area config entry."""
-
-    add_entities_when_ready(hass, async_add_entities, config_entry, add_switches)
-
-
-def add_switches(area: MagicArea, async_add_entities: AddEntitiesCallback):
     """Add the swithces for the area."""
+    area: MagicArea = hass.data[MODULE_DATA][config_entry.entry_id][DATA_AREA_OBJECT]
+
     if area.has_feature(CONF_FEATURE_PRESENCE_HOLD):
         async_add_entities([AreaPresenceHoldSwitch(area)])
 

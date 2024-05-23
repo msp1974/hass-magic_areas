@@ -11,7 +11,6 @@ from homeassistant.const import ATTR_DEVICE_CLASS
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .add_entities_when_ready import add_entities_when_ready
 from .base.magic import MagicArea
 from .base.primitives import BinarySensorGroupBase
 from .const import (
@@ -19,7 +18,9 @@ from .const import (
     CONF_AGGREGATES_MIN_ENTITIES,
     CONF_FEATURE_AGGREGATION,
     CONF_FEATURE_HEALTH,
+    DATA_AREA_OBJECT,
     DISTRESS_SENSOR_CLASSES,
+    MODULE_DATA,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -32,20 +33,18 @@ async def async_setup_entry(
 ) -> None:
     """Set up the Area config entry."""
 
-    add_entities_when_ready(hass, async_add_entities, config_entry, add_sensors)
+    area: MagicArea = hass.data[MODULE_DATA][config_entry.entry_id][DATA_AREA_OBJECT]
 
-
-def add_sensors(area: MagicArea, async_add_entities: AddEntitiesCallback):
-    """Add the basic sensors for the area."""
-    # Create extra sensors
     if area.has_feature(CONF_FEATURE_AGGREGATION):
-        create_aggregate_sensors(area, async_add_entities)
+        await create_aggregate_sensors(area, async_add_entities)
 
     if area.has_feature(CONF_FEATURE_HEALTH):
-        create_health_sensors(area, async_add_entities)
+        await create_health_sensors(area, async_add_entities)
 
 
-def create_health_sensors(area: MagicArea, async_add_entities: AddEntitiesCallback):
+async def create_health_sensors(
+    area: MagicArea, async_add_entities: AddEntitiesCallback
+):
     """Add the health sensors for the area."""
     if not area.has_feature(CONF_FEATURE_HEALTH):
         return
@@ -73,7 +72,9 @@ def create_health_sensors(area: MagicArea, async_add_entities: AddEntitiesCallba
     async_add_entities([AreaDistressBinarySensor(area)])
 
 
-def create_aggregate_sensors(area: MagicArea, async_add_entities: AddEntitiesCallback):
+async def create_aggregate_sensors(
+    area: MagicArea, async_add_entities: AddEntitiesCallback
+):
     """Create the aggregate sensors for the area."""
     # Create aggregates
     if not area.has_feature(CONF_FEATURE_AGGREGATION):

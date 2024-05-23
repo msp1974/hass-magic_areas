@@ -29,7 +29,6 @@ from homeassistant.components.climate import (
     ATTR_TARGET_TEMP_LOW,
     ATTR_TARGET_TEMP_STEP,
     DOMAIN as CLIMATE_DOMAIN,
-    PLATFORM_SCHEMA,
     SERVICE_SET_FAN_MODE,
     SERVICE_SET_HVAC_MODE,
     SERVICE_SET_PRESET_MODE,
@@ -52,27 +51,20 @@ from homeassistant.const import (
     ATTR_ENTITY_ID,
     ATTR_SUPPORTED_FEATURES,
     ATTR_TEMPERATURE,
-    CONF_ENTITIES,
-    CONF_NAME,
-    CONF_TEMPERATURE_UNIT,
-    CONF_UNIQUE_ID,
-    STATE_OFF,
     STATE_UNAVAILABLE,
-    STATE_UNKNOWN,
-    UnitOfTemperature,
 )
 from homeassistant.core import Event, HomeAssistant, callback
-from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event
 
-from .add_entities_when_ready import add_entities_when_ready
 from .base.entities import MagicEntity
 from .base.magic import MagicArea
 from .const import (
     CONF_CLIMATE_GROUPS_TURN_ON_STATE,
     CONF_FEATURE_CLIMATE_GROUPS,
+    DATA_AREA_OBJECT,
     DEFAULT_CLIMATE_GROUPS_TURN_ON_STATE,
+    MODULE_DATA,
     AreaState,
 )
 
@@ -101,13 +93,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ):
     """Create the climate group entry on startup."""
-    add_entities_when_ready(
-        hass, async_add_entities, config_entry, _setup_climate_group
-    )
-
-
-def _setup_climate_group(area: MagicArea, async_add_entities: AddEntitiesCallback):
-    # Check feature availability
+    area: MagicArea = hass.data[MODULE_DATA][config_entry.entry_id][DATA_AREA_OBJECT]
     if not area.has_feature(CONF_FEATURE_CLIMATE_GROUPS):
         return
 

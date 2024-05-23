@@ -25,10 +25,15 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity_registry import async_get as async_get_er
 from homeassistant.helpers.event import async_track_state_change_event, call_later
 
-from .add_entities_when_ready import add_entities_when_ready
 from .base.entities import MagicLightGroup
 from .base.magic import MagicArea
-from .const import CONF_MANUAL_TIMEOUT, DEFAULT_MANUAL_TIMEOUT, DOMAIN
+from .const import (
+    CONF_MANUAL_TIMEOUT,
+    DATA_AREA_OBJECT,
+    DEFAULT_MANUAL_TIMEOUT,
+    DOMAIN,
+    MODULE_DATA,
+)
 
 _LOGGER = logging.getLogger(__name__)
 DEPENDENCIES = ["magic_areas"]
@@ -41,21 +46,8 @@ async def async_setup_entry(
 ):
     """Set up the Area config entry."""
 
-    add_entities_when_ready(hass, async_add_entities, config_entry, _add_lights)
+    area: MagicArea = hass.data[MODULE_DATA][config_entry.entry_id][DATA_AREA_OBJECT]
 
-
-def _cleanup_entities(
-    hass: HomeAssistant, new_ids: list[str], old_ids: list[str]
-) -> None:
-    entity_registry = async_get_er(hass)
-    for ent_id in old_ids:
-        if ent_id in new_ids:
-            continue
-        _LOGGER.warning("Deleting old entity %s", ent_id)
-        entity_registry.async_remove(ent_id)
-
-
-def _add_lights(area: MagicArea, async_add_entities: AddEntitiesCallback):
     existing_light_entities: list[str] = []
     if DOMAIN + LIGHT_DOMAIN in area.entities:
         _LOGGER.warning("Froggy %s", area.entities[DOMAIN + LIGHT_DOMAIN])
@@ -68,7 +60,7 @@ def _add_lights(area: MagicArea, async_add_entities: AddEntitiesCallback):
         _cleanup_entities(area.hass, [], existing_light_entities)
         return
 
-    light_groups = []
+    light_groups: list[MagicLightGroup | AreaLightGroup] = []
 
     # Create light groups
     light_entities = [e["entity_id"] for e in area.entities[LIGHT_DOMAIN]]
@@ -82,7 +74,20 @@ def _add_lights(area: MagicArea, async_add_entities: AddEntitiesCallback):
     # Create all groups
     async_add_entities(light_groups)
     group_ids = [e.entity_id for e in light_groups]
-    _cleanup_entities(area.hass, group_ids, existing_light_entities)
+    await _cleanup_entities(hass, group_ids, existing_light_entities)
+
+    # add_entities_when_ready(hass, async_add_entities, config_entry, _add_lights)
+
+
+async def _cleanup_entities(
+    hass: HomeAssistant, new_ids: list[str], old_ids: list[str]
+) -> None:
+    entity_registry = async_get_er(hass)
+    for ent_id in old_ids:
+        if ent_id in new_ids:
+            continue
+        _LOGGER.warning("Deleting old entity %s", ent_id)
+        entity_registry.async_remove(ent_id)
 
 
 class AreaLightGroup(MagicLightGroup):

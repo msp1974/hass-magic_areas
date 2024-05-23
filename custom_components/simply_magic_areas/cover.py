@@ -4,10 +4,7 @@ import logging
 
 from .base.entities import MagicEntity
 from .base.magic import MagicArea
-from .const import CONF_FEATURE_COVER_GROUPS
-from .add_entities_when_ready import (
-    add_entities_when_ready,
-)
+from .const import CONF_FEATURE_COVER_GROUPS, DATA_AREA_OBJECT, MODULE_DATA
 import homeassistant.components.cover as cover
 from homeassistant.components.group.cover import CoverGroup
 from homeassistant.config_entries import ConfigEntry
@@ -24,11 +21,8 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ):
     """Set up the Area config entry."""
+    area: MagicArea = hass.data[MODULE_DATA][config_entry.entry_id][DATA_AREA_OBJECT]
 
-    add_entities_when_ready(hass, async_add_entities, config_entry, add_cover_groups)
-
-
-def add_cover_groups(area: MagicArea, async_add_entities: AddEntitiesCallback):
     # Check feature availability
     if not area.has_feature(CONF_FEATURE_COVER_GROUPS):
         return

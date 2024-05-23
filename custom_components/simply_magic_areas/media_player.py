@@ -21,7 +21,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change
 from homeassistant.helpers.restore_state import RestoreEntity
 
-from .add_entities_when_ready import add_entities_when_ready
 from .base.entities import MagicEntity
 from .base.magic import MagicArea
 from .const import (
@@ -29,9 +28,11 @@ from .const import (
     CONF_FEATURE_MEDIA_PLAYER_GROUPS,
     CONF_NOTIFICATION_DEVICES,
     CONF_NOTIFY_STATES,
+    DATA_AREA_OBJECT,
     DEFAULT_NOTIFICATION_DEVICES,
     DEFAULT_NOTIFY_STATES,
     META_AREA_GLOBAL,
+    MODULE_DATA,
 )
 
 DEPENDENCIES = ["media_player"]
@@ -45,15 +46,12 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Create the media player entities."""
-    add_entities_when_ready(hass, async_add_entities, config_entry, add_media_players)
+    area: MagicArea = hass.data[MODULE_DATA][config_entry.entry_id][DATA_AREA_OBJECT]
 
-
-def add_media_players(area: MagicArea, async_add_entities: AddEntitiesCallback) -> None:
-    """Create the media players."""
     # Media Player Groups
     if area.has_feature(CONF_FEATURE_MEDIA_PLAYER_GROUPS):
         _LOGGER.debug("%s: Setting up media player groups", area.name)
-        setup_media_player_group(area, async_add_entities)
+        await setup_media_player_group(area, async_add_entities)
 
     # Check if we are the Global Meta Area
     if not area.is_meta() or area.id != META_AREA_GLOBAL.lower():
@@ -65,7 +63,9 @@ def add_media_players(area: MagicArea, async_add_entities: AddEntitiesCallback) 
     setup_area_aware_media_player(area, async_add_entities)
 
 
-def setup_media_player_group(area: MagicArea, async_add_entities: AddEntitiesCallback):
+async def setup_media_player_group(
+    area: MagicArea, async_add_entities: AddEntitiesCallback
+):
     """Create the media player group."""
     # Check if there are any media player devices
     if not area.has_entities(MEDIA_PLAYER_DOMAIN):

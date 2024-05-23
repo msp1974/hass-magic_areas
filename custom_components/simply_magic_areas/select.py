@@ -15,9 +15,7 @@ from homeassistant.helpers.event import (
     async_track_time_interval,
     call_later,
 )
-from homeassistant.util.async_ import run_callback_threadsafe
 
-from .add_entities_when_ready import add_entities_when_ready
 from .base.entities import MagicSelectEntity
 from .base.magic import MagicArea
 from .const import (
@@ -38,11 +36,13 @@ from .const import (
     CONF_PRESENCE_SENSOR_DEVICE_CLASS,
     CONF_TYPE,
     CONF_UPDATE_INTERVAL,
+    DATA_AREA_OBJECT,
     DEFAULT_ON_STATES,
     DEFAULT_PRESENCE_DEVICE_PLATFORMS,
     DEFAULT_PRESENCE_DEVICE_SENSOR_CLASS,
     DEFAULT_UPDATE_INTERVAL,
     INVALID_STATES,
+    MODULE_DATA,
     AreaState,
 )
 
@@ -55,12 +55,8 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the Area config entry."""
+    area: MagicArea = hass.data[MODULE_DATA][config_entry.entry_id][DATA_AREA_OBJECT]
 
-    add_entities_when_ready(hass, async_add_entities, config_entry, add_state_select)
-
-
-def add_state_select(area: MagicArea, async_add_entities: AddEntitiesCallback):
-    """Add the basic sensors for the area."""
     # Create basic presence sensor
     async_add_entities([AreaStateSelect(area)])
 

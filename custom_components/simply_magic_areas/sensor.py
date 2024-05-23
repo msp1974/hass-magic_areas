@@ -8,13 +8,14 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .add_entities_when_ready import add_entities_when_ready
 from .base.magic import MagicArea
 from .base.primitives import SensorGroupBase
 from .const import (
     AGGREGATE_MODE_SUM,
     CONF_AGGREGATES_MIN_ENTITIES,
     CONF_FEATURE_AGGREGATION,
+    DATA_AREA_OBJECT,
+    MODULE_DATA,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -26,12 +27,8 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ):
     """Set up the magic area sensor config entry."""
+    area: MagicArea = hass.data[MODULE_DATA][config_entry.entry_id][DATA_AREA_OBJECT]
 
-    add_entities_when_ready(hass, async_add_entities, config_entry, add_sensors)
-
-
-def add_sensors(area: MagicArea, async_add_entities: AddEntitiesCallback):
-    """Add the sensors for the magic areas."""
     # Create aggregates
     if not area.has_feature(CONF_FEATURE_AGGREGATION):
         return
