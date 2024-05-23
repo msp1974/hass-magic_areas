@@ -214,10 +214,6 @@ class MagicArea(object):  # noqa: UP004
         """If this is an exterior area."""
         return self.area_type == AREA_TYPE_EXTERIOR
 
-    def _is_magic_area_entity(self, entity: RegistryEntry) -> bool:
-        """Return if entity belongs to this integration instance."""
-        return entity.config_entry_id == self.hass_config.entry_id
-
     def _should_exclude_entity(self, entity: RegistryEntry) -> bool:
         """Exclude entity."""
         return (

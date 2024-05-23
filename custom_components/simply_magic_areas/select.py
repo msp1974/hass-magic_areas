@@ -10,7 +10,6 @@ from homeassistant.const import ATTR_DEVICE_CLASS, ATTR_ENTITY_ID, STATE_ON
 from homeassistant.core import HomeAssistant, State, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import (
-    async_call_later,
     async_track_state_change,
     async_track_time_interval,
     call_later,

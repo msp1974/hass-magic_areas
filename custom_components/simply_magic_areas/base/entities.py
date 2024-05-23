@@ -19,7 +19,7 @@ from homeassistant.components.select import SelectEntity
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.const import EVENT_HOMEASSISTANT_STARTED, STATE_OFF, STATE_ON
-from homeassistant.core import State
+from homeassistant.core import State, callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.restore_state import RestoreEntity
@@ -128,6 +128,7 @@ class MagicBinarySensorEntity(MagicEntity, BinarySensorEntity):
         """Return true if the area is occupied."""
         return self._state
 
+    @callback
     def sensor_state_change(self, entity_id: str, from_state: State, to_state: State):
         """Actions when the sensor state has changed."""
         _LOGGER.warning(

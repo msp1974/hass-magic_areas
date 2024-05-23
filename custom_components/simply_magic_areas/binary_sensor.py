@@ -120,7 +120,7 @@ class AreaSensorGroupBinarySensor(BinarySensorGroupBase):
     def __init__(self, area: MagicArea, device_class: BinarySensorDeviceClass) -> None:
         """Initialize an area sensor group binary sensor."""
 
-        super().__init__(area, device_class)
+        BinarySensorGroupBase.__init__(self, area, device_class)
 
         self._mode = "all" if device_class in AGGREGATE_MODE_ALL else "single"
 
