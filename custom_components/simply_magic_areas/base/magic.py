@@ -216,14 +216,27 @@ class MagicArea(object):  # noqa: UP004
 
     def _should_exclude_entity(self, entity: RegistryEntry) -> bool:
         """Exclude entity."""
-        return (
-            entity.config_entry_id == self.hass_config.entry_id  # Is magic_area entity
-            or entity.disabled  # Is disabled
-            or entity.entity_id  # In excluded list
-            in self.feature_config(CONF_FEATURE_ADVANCED_LIGHT_GROUPS).get(
-                CONF_EXCLUDE_ENTITIES, []
+
+        if entity.config_entry_id == self.hass_config.entry_id:  # Is magic_area entity
+            _LOGGER.debug(
+                "%s: Entity %s is ours, skipping", self.name, entity.entity_id
             )
-        )
+            return True
+        if entity.disabled:  # Is disabled
+            _LOGGER.debug(
+                "%s: Entity %s is disabled, skipping", self.name, entity.entity_id
+            )
+            return True
+        if entity.entity_id in self.feature_config(
+            CONF_FEATURE_ADVANCED_LIGHT_GROUPS
+        ).get(CONF_EXCLUDE_ENTITIES, []):  # In excluded list
+            _LOGGER.debug(
+                "%s: Entity %s is in excluded list, skipping",
+                self.name,
+                entity.entity_id,
+            )
+            return True
+        return False
 
     async def _load_entities(self) -> None:
         """Load entities that belong to this area."""
@@ -268,12 +281,6 @@ class MagicArea(object):  # noqa: UP004
         )
         magic_area_entities.extend(
             [entity.entity_id for entity in entities_for_config_id]
-        )
-
-        _LOGGER.debug(
-            "Area ID - %s, Entities - %s",
-            self.id,
-            entity_list,
         )
 
         if include_entities and isinstance(include_entities, list):
